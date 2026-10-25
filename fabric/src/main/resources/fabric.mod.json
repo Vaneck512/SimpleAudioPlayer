@@ -16,7 +16,7 @@
     "environment": "*",
     "entrypoints": {
         "main": [
-            "ru.vaneck.sap.SimpleAudioPlayer(SAP)"
+            "ru.vaneck.sap.SimpleAudioPlayer"
         ]
     },
     "mixins": [
