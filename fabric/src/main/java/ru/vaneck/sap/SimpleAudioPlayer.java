@@ -2,7 +2,7 @@ package ru.vaneck.sap;
 
 import net.fabricmc.api.ModInitializer;
 
-public class SimpleAudioPlayer(SAP) implements ModInitializer {
+public class SimpleAudioPlayer implements ModInitializer {
 
     @Override
     public void onInitialize() {
