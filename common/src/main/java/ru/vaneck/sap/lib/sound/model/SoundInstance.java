@@ -1,12 +1,15 @@
 package ru.vaneck.sap.lib.sound.model;
 
 import org.joml.Vector3f;
+import org.lwjgl.openal.AL10;
 
 import static org.lwjgl.openal.AL10.*;
 
-public class SoundInstance {
+public class SoundInstance implements AudioInstance {
 
     private final int sourceId;
+    private boolean closed;
+    private boolean started;
 
     public SoundInstance(boolean loop, boolean relative) {
         this.sourceId = alGenSources();
@@ -29,6 +32,7 @@ public class SoundInstance {
 
     public void play() {
         alSourcePlay(sourceId);
+        started = true;
     }
 
     public void setBuffer(int bufferId) {
@@ -46,5 +50,29 @@ public class SoundInstance {
 
     public void stop() {
         alSourceStop(sourceId);
+    }
+
+    public int getSourceId() {
+        return sourceId;
+    }
+
+    public boolean isPaused() {
+        return alGetSourcei(sourceId, AL_SOURCE_STATE) == AL_PAUSED;
+    }
+
+    @Override
+    public boolean isClosed() {
+        return this.closed;
+    }
+
+    public boolean isStarted() {
+        return started;
+    }
+
+    @Override
+    public void close() {
+        AL10.alSourceStop(this.sourceId);
+        AL10.alDeleteSources(this.sourceId);
+        this.closed = true;
     }
 }

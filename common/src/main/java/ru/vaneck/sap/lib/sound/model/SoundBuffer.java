@@ -8,7 +8,7 @@ import java.nio.*;
 
 import static org.lwjgl.openal.AL10.*;
 
-public class SoundBuffer implements AudioInstance {
+public class SoundBuffer {
     private final int bufferId;
 
     private final ByteBuffer pcm;
@@ -28,13 +28,13 @@ public class SoundBuffer implements AudioInstance {
 
     public void cleanup() {
         alDeleteBuffers(this.bufferId);
-        if (pcm != null) {
-            MemoryUtil.memFree(pcm);
-        }
+//        if (pcm != null) {
+//            MemoryUtil.memFree(pcm);
+//        }
     }
 
-    @Override
     public void close() {
+        Constants.LOG.info("1234567");
         cleanup();
         this.closed = true;
     }
