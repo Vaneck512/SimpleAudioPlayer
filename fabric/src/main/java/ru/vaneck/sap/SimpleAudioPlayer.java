@@ -28,7 +28,7 @@ public class SimpleAudioPlayer implements ModInitializer {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, buildContext) -> {
             dispatcher.register(ClientCommands.literal("play").executes(context -> {
                 AL10.alDistanceModel(AL11.AL_EXPONENT_DISTANCE);
-                AudioFactory.createSound("C:\\users\\ivan\\downloads\\Tryhardninja-Follow-Me.ogg", AudioType.FILE)
+                AudioFactory.createSound("C:\\users\\ivan\\downloads\\pwgood-oi.ogg", AudioType.FILE)
                         .thenAccept(soundInstance -> {
                             System.out.println(123);
                             soundInstance.setGain(0.35F);

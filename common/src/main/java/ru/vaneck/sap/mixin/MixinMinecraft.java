@@ -1,5 +1,6 @@
 package ru.vaneck.sap.mixin;
 
+import ru.vaneck.sap.CommonClass;
 import ru.vaneck.sap.Constants;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
@@ -16,5 +17,10 @@ public class MixinMinecraft {
 
         Constants.LOG.info("This line is printed by an example mod common mixin!");
         Constants.LOG.info("MC Version: {}", SharedConstants.getCurrentVersion().name());
+    }
+
+    @Inject(method = "renderFrame", at=@At("HEAD"))
+    public void test(boolean advanceGameTime, CallbackInfo ci) {
+        CommonClass.CACHE_MANAGER.update();
     }
 }

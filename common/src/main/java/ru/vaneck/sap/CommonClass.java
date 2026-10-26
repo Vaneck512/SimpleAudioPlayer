@@ -1,5 +1,6 @@
 package ru.vaneck.sap;
 
+import ru.vaneck.sap.lib.AudioCacheManager;
 import ru.vaneck.sap.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
@@ -9,6 +10,8 @@ import net.minecraft.world.item.Items;
 // common compatible binaries. This means common code can not directly use loader specific concepts such as NeoForge events
 // however it will be compatible with all supported mod loaders.
 public class CommonClass {
+
+    public static final AudioCacheManager CACHE_MANAGER = new AudioCacheManager();
 
     // The loader specific projects are able to import and use any code from the common project. This allows you to
     // write the majority of your code here and load it from your loader specific projects. This example has some

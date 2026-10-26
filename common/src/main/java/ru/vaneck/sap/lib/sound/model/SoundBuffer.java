@@ -8,10 +8,11 @@ import java.nio.*;
 
 import static org.lwjgl.openal.AL10.*;
 
-public class SoundBuffer {
+public class SoundBuffer implements AudioInstance {
     private final int bufferId;
 
     private final ByteBuffer pcm;
+    private boolean closed;
 
     public SoundBuffer(ByteBuffer data, AudioFormat format) {
         this.bufferId = alGenBuffers();
@@ -30,6 +31,16 @@ public class SoundBuffer {
         if (pcm != null) {
             MemoryUtil.memFree(pcm);
         }
+    }
+
+    @Override
+    public void close() {
+        cleanup();
+        this.closed = true;
+    }
+
+    public boolean isClosed() {
+        return this.closed;
     }
 
     public int getBufferId() {
