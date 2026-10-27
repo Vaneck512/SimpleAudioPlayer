@@ -3,8 +3,10 @@ package ru.vaneck.sap.lib.sound.model;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
+import java.io.Closeable;
+
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-public interface AudioInstance {
+public interface AudioInstance extends Closeable {
     boolean isClosed();
     AudioInstance play();
     AudioInstance pause();
@@ -18,4 +20,6 @@ public interface AudioInstance {
     AudioInstance ReferenceDistance(float distance);
     boolean isPlaying();
     boolean isPaused();
+
+    boolean isStarted();
 }
