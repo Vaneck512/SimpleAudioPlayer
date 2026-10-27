@@ -21,6 +21,6 @@ public class MixinMinecraft {
 
     @Inject(method = "renderFrame", at=@At("HEAD"))
     public void test(boolean advanceGameTime, CallbackInfo ci) {
-        CommonClass.CACHE_MANAGER.update();
+//        CommonClass.CACHE_MANAGER.update();
     }
 }
