@@ -1,14 +1,13 @@
 package ru.vaneck.sap.lib;
 
 import net.minecraft.client.Minecraft;
-import org.apache.commons.compress.compressors.pack200.Pack200Utils;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
+import ru.vaneck.sap.lib.sound.model.AudioInstance;
 import ru.vaneck.sap.lib.sound.model.SoundBuffer;
 import ru.vaneck.sap.lib.sound.model.SoundInstance;
+import ru.vaneck.sap.lib.sound.model.streaming.StreamingSoundInstance;
 
-import java.lang.ref.Cleaner;
-import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -25,6 +24,7 @@ import java.util.function.Supplier;
 public class AudioCacheManager {
     private static final ConcurrentHashMap<String, SoundBuffer> SOUND_BUFFERS = new ConcurrentHashMap<>();
     private static final Set<SoundInstance> SOUND_INSTANCES = ConcurrentHashMap.newKeySet();
+    private static final Set<StreamingSoundInstance> STREAMING_SOUND_INSTANCES = ConcurrentHashMap.newKeySet();
 
     private static final ScheduledExecutorService THREAD = Executors.newSingleThreadScheduledExecutor(runnable -> {
         Thread thread = new Thread(runnable, "SAP audio cleanup");
@@ -41,12 +41,21 @@ public class AudioCacheManager {
         });
     }
 
-    public static SoundInstance autoClean(SoundInstance soundInstance) {
+    public static AudioInstance autoClose(AudioInstance audioInstance) {
         System.out.println(SOUND_INSTANCES);
         System.out.println(SOUND_BUFFERS);
-        SOUND_INSTANCES.add(soundInstance);
-        return soundInstance;
+        if (audioInstance instanceof SoundInstance soundInstance)
+            SOUND_INSTANCES.add(soundInstance);
+        else if (audioInstance instanceof StreamingSoundInstance streamingSoundInstance)
+            STREAMING_SOUND_INSTANCES.add(streamingSoundInstance);
+
+        return audioInstance;
     }
+
+//    public static StreamingSoundInstance autoClean(StreamingSoundInstance soundInstance) {
+//        STREAMING_SOUND_INSTANCES.add(soundInstance);
+//        return soundInstance;
+//    }
 
     static {
         THREAD.scheduleAtFixedRate(() -> Minecraft.getInstance().execute(AudioCacheManager::cleanUp), 250, 250, TimeUnit.MILLISECONDS);
@@ -78,6 +87,30 @@ public class AudioCacheManager {
             }
             return false;
         });
+
+        STREAMING_SOUND_INSTANCES.removeIf(streamingSoundInstance -> {
+            if (streamingSoundInstance.isClosed()) return true;
+
+            if (streamingSoundInstance.isStarted() && streamingSoundInstance.isEnded()) {
+                try {
+                    streamingSoundInstance.close();
+                    return true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (!streamingSoundInstance.isClosed()) {
+                streamingSoundInstance.update();
+            }
+
+            return false;
+        });
+
+        System.out.println(SOUND_BUFFERS);
+        System.out.println(SOUND_INSTANCES);
+        System.out.println(STREAMING_SOUND_INSTANCES);
+
     }
 
 }
