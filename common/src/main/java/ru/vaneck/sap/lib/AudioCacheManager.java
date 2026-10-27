@@ -26,6 +26,8 @@ public class AudioCacheManager {
     private static final Set<SoundInstance> SOUND_INSTANCES = ConcurrentHashMap.newKeySet();
     private static final Set<StreamingSoundInstance> STREAMING_SOUND_INSTANCES = ConcurrentHashMap.newKeySet();
 
+    private static final Set<AudioInstance> ACTIVE_INSTANCES = ConcurrentHashMap.newKeySet();
+
     private static final ScheduledExecutorService THREAD = Executors.newSingleThreadScheduledExecutor(runnable -> {
         Thread thread = new Thread(runnable, "SAP audio cleanup");
         thread.setDaemon(true);
@@ -42,14 +44,17 @@ public class AudioCacheManager {
     }
 
     public static AudioInstance autoClose(AudioInstance audioInstance) {
-        System.out.println(SOUND_INSTANCES);
-        System.out.println(SOUND_BUFFERS);
         if (audioInstance instanceof SoundInstance soundInstance)
             SOUND_INSTANCES.add(soundInstance);
         else if (audioInstance instanceof StreamingSoundInstance streamingSoundInstance)
             STREAMING_SOUND_INSTANCES.add(streamingSoundInstance);
 
         return audioInstance;
+    }
+
+    public static AudioInstance track(AudioInstance instance) {
+        ACTIVE_INSTANCES.add(instance);
+        return instance;
     }
 
 //    public static StreamingSoundInstance autoClean(StreamingSoundInstance soundInstance) {
@@ -73,10 +78,24 @@ public class AudioCacheManager {
             return false;
         });
 
+        ACTIVE_INSTANCES.removeIf(soundInstance -> {
+            if (!soundInstance.isStarted()) return false;
+            if (!soundInstance.isPlaying() && !soundInstance.isPaused()) {
+                return !soundInstance.isClosed();
+            }
+            return false;
+        });
+
         Set<Integer> activeBuffers = new HashSet<>();
         for (SoundInstance soundInstance : SOUND_INSTANCES) {
             int bufferId = AL11.alGetSourcei(soundInstance.getSourceId(), AL10.AL_BUFFER);
             activeBuffers.add(bufferId);
+        }
+        for (AudioInstance instance : ACTIVE_INSTANCES) {
+            if (instance instanceof SoundInstance soundInstance) {
+                int bufferId = AL11.alGetSourcei(soundInstance.getSourceId(), AL10.AL_BUFFER);
+                activeBuffers.add(bufferId);
+            }
         }
 
         SOUND_BUFFERS.entrySet().removeIf(entries -> {
