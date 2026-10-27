@@ -257,12 +257,16 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (closed) return;
         stop();
         closed = true;
         if (stream != null) {
-            stream.close();
+            try {
+                stream.close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
             stream = null;
         }
         for (int buffer : buffers) alDeleteBuffers(buffer);
