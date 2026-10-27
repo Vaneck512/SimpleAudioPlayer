@@ -7,10 +7,15 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import org.overviewproject.mime_types.MimeTypeDetector;
 import ru.vaneck.sap.lib.sound.model.AudioData;
+import ru.vaneck.sap.lib.sound.model.streaming.AudioStream;
+import ru.vaneck.sap.lib.sound.model.streaming.Mp3AudioStream;
+import ru.vaneck.sap.lib.sound.model.streaming.OggAudioStream;
+import ru.vaneck.sap.lib.sound.model.streaming.WavAudioStream;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -29,7 +34,6 @@ public class AudioUtils {
             case WAV -> {
                 try (AudioInputStream stream = AudioSystem.getAudioInputStream(new BufferedInputStream(is))) {
                     byte[] array = stream.readAllBytes();
-                    //It's important to allocate the buffer, because otherwise OpenAL can't read it
                     ByteBuffer buffer = ByteBuffer.allocateDirect(array.length);
                     buffer.put(array);
                     buffer.flip();
@@ -40,6 +44,14 @@ public class AudioUtils {
         };
         is.close();
         return data;
+    }
+
+    public static AudioStream createStream(InputStream is, SourceExtension extension, boolean mono) throws Exception {
+        return switch (extension) {
+            case OGG -> new OggAudioStream(is, mono);
+            case MP3 -> new Mp3AudioStream(is, mono);
+            case WAV -> new WavAudioStream(is, mono);
+        };
     }
 
     static InputStream openStream(String source, AudioType type) throws IOException {
