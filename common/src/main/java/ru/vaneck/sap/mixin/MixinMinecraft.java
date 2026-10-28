@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ru.vaneck.sap.lib.AudioCacheManager;
 
 @Mixin(Minecraft.class)
 public class MixinMinecraft {
@@ -19,8 +20,8 @@ public class MixinMinecraft {
         Constants.LOG.info("MC Version: {}", SharedConstants.getCurrentVersion().name());
     }
 
-    @Inject(method = "renderFrame", at=@At("HEAD"))
-    public void test(boolean advanceGameTime, CallbackInfo ci) {
-//        CommonClass.CACHE_MANAGER.update();
+    @Inject(method = "close", at=@At("TAIL"))
+    public void test(CallbackInfo ci) {
+        AudioCacheManager.clearAll();
     }
 }

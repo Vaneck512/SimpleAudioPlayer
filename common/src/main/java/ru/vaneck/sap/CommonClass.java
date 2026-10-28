@@ -11,7 +11,7 @@ import net.minecraft.world.item.Items;
 // however it will be compatible with all supported mod loaders.
 public class CommonClass {
 
-    public static final AudioCacheManager CACHE_MANAGER = new AudioCacheManager();
+//    public static final AudioCacheManager CACHE_MANAGER = new AudioCacheManager();
 
     // The loader specific projects are able to import and use any code from the common project. This allows you to
     // write the majority of your code here and load it from your loader specific projects. This example has some

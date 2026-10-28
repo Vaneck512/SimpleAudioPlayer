@@ -13,6 +13,7 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -20,18 +21,27 @@ import java.util.function.Consumer;
 import static ru.vaneck.sap.lib.sound.AudioUtils.*;
 
 public class AudioFactory {
-    public static Executor EXECUTOR = Executors.newCachedThreadPool();
-    public static CompletableFuture<AudioInstance> createSound(String source, AudioType type) {
+    public static final ExecutorService EXECUTOR =
+            Executors.newCachedThreadPool(runnable -> {
+                Thread thread = new Thread(runnable, "SAP audio worker");
+                thread.setDaemon(true);
+                return thread;
+            });
+    public static void shutdown() {
+        EXECUTOR.shutdownNow();
+    }
+
+    public static CompletableFuture<AudioInstance> createSound(String source, AudioType type, boolean positional) {
         CompletableFuture<AudioInstance> future = new CompletableFuture<>();
-        String cacheKey = source + type;
+        String cacheKey = source + ":" + type + "&p=" + positional;
         AtomicReference<SoundBuffer> buffer = new AtomicReference<>();
         try {
-            new Thread(() -> {
+            EXECUTOR.execute(() -> {
                 try {
                     BufferedInputStream is = new BufferedInputStream(openStream(source, type));
                     AudioData audioData = AudioUtils.decodeStream(is, AudioUtils.parseStreamExtension(is));
                     future.completeAsync(() -> {
-                        buffer.set(AudioCacheManager.getOrCreateBuffer(cacheKey, () -> createBuffer(audioData, true)));
+                        buffer.set(AudioCacheManager.getOrCreateBuffer(cacheKey, () -> createBuffer(audioData, positional)));
                         SoundInstance instance = (SoundInstance) AudioCacheManager.track(new SoundInstance(false, false));
                         instance.setBuffer(buffer.get().getBufferId());
                         return instance;
@@ -39,7 +49,7 @@ public class AudioFactory {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-            }).start();
+            });
         } catch (Exception e) {
             if (buffer.get() != null)
                 buffer.get().cleanup();
@@ -49,16 +59,16 @@ public class AudioFactory {
         return future;
     }
 
-    public static CompletableFuture<AudioInstance> createStreamingSound(String source, AudioType type) {
+    public static CompletableFuture<AudioInstance> createStreamingSound(String source, AudioType type, boolean positional) {
         CompletableFuture<AudioInstance> future = new CompletableFuture<>();
 
         try {
             BufferedInputStream is = new BufferedInputStream(openStream(source, type));
 
-            new Thread(() -> {
+            EXECUTOR.execute(() -> {
                 AudioStream audioStream = null;
                 try {
-                    audioStream = AudioUtils.createStream(is, AudioUtils.parseStreamExtension(is), true);
+                    audioStream = AudioUtils.createStream(is, AudioUtils.parseStreamExtension(is), positional);
                     AudioStream finalAudioStream = audioStream;
 
                     future.completeAsync(() -> {
@@ -81,7 +91,7 @@ public class AudioFactory {
                     }
                     future.completeExceptionally(e);
                 }
-            }).start();
+            });
 
         } catch (Exception e) {
             future.completeExceptionally(e);
@@ -95,15 +105,17 @@ public class AudioFactory {
      *
      * @param source path, resourceLocation or URL
      * @param type type of source
+     * @param positoinal play in world (.setPosition() on instance) insted of playing in head
      * @param streaming read in chunks (if false - load all audio in memory)
      * @param settings set volume, position, max distance, ...
-     * @throws Exception
      */
-    public static void playOnce(String source, AudioType type, boolean streaming, Consumer<AudioInstance> settings) throws Exception {
-        AudioInstance audioInstance = streaming ? createStreamingSound(source, type).get() : createSound(source, type).get();
-        AudioCacheManager.autoClose(audioInstance);
-        settings.accept(audioInstance);
-        audioInstance.play();
+    public static void playOnce(String source, AudioType type, boolean positoinal, boolean streaming, Consumer<AudioInstance> settings) {
+        CompletableFuture<AudioInstance> future = streaming ? createStreamingSound(source, type, positoinal) : createSound(source, type, positoinal);
+        future.thenAccept(audioInstance -> {
+            AudioCacheManager.autoClose(audioInstance);
+            settings.accept(audioInstance);
+            audioInstance.play();
+        });
     }
 
 

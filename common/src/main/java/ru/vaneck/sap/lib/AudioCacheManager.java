@@ -1,13 +1,17 @@
 package ru.vaneck.sap.lib;
 
 import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
+import ru.vaneck.sap.Constants;
+import ru.vaneck.sap.lib.sound.AudioFactory;
 import ru.vaneck.sap.lib.sound.model.AudioInstance;
 import ru.vaneck.sap.lib.sound.model.SoundBuffer;
 import ru.vaneck.sap.lib.sound.model.SoundInstance;
 import ru.vaneck.sap.lib.sound.model.streaming.StreamingSoundInstance;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -131,10 +135,48 @@ public class AudioCacheManager {
             return false;
         });
 
-//        System.out.println(SOUND_BUFFERS);
-//        System.out.println(SOUND_INSTANCES);
-//        System.out.println(STREAMING_SOUND_INSTANCES);
+        System.out.println(SOUND_BUFFERS);
+        System.out.println(SOUND_INSTANCES);
+        System.out.println(STREAMING_SOUND_INSTANCES);
 
+    }
+
+    public static void clearAll() {
+        Constants.LOG.info("Starting audio cleanup");
+
+        THREAD.shutdownNow();
+        AudioFactory.shutdown();
+
+        Constants.LOG.info("Closing active instances");
+        ACTIVE_INSTANCES.removeIf(AudioCacheManager::removeIf);
+
+        Constants.LOG.info("Closing streaming instances");
+        STREAMING_SOUND_INSTANCES.removeIf(AudioCacheManager::removeIf);
+
+        Constants.LOG.info("Closing sound instances");
+        SOUND_INSTANCES.removeIf(AudioCacheManager::removeIf);
+
+        Constants.LOG.info("Closing sound buffers");
+        SOUND_BUFFERS.entrySet().removeIf(entry -> {
+            SoundBuffer buffer = entry.getValue();
+
+            if (!buffer.isClosed()) {
+                buffer.close();
+            }
+
+            return true;
+        });
+
+        Constants.LOG.info("Audio cleanup completed");
+    }
+
+    private static boolean removeIf(AudioInstance instance) {
+        try {
+            instance.close();
+            return true;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
