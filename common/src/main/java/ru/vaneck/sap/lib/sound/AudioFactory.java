@@ -1,10 +1,9 @@
 package ru.vaneck.sap.lib.sound;
 
+import org.jspecify.annotations.Nullable;
+import ru.vaneck.sap.Constants;
 import ru.vaneck.sap.lib.AudioCacheManager;
-import ru.vaneck.sap.lib.sound.model.AudioData;
-import ru.vaneck.sap.lib.sound.model.AudioInstance;
-import ru.vaneck.sap.lib.sound.model.SoundBuffer;
-import ru.vaneck.sap.lib.sound.model.SoundInstance;
+import ru.vaneck.sap.lib.sound.model.*;
 import ru.vaneck.sap.lib.sound.model.streaming.AudioStream;
 import ru.vaneck.sap.lib.sound.model.streaming.StreamingSoundInstance;
 
@@ -12,7 +11,6 @@ import javax.sound.sampled.AudioFormat;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,6 +31,10 @@ public class AudioFactory {
 
     public static CompletableFuture<AudioInstance> createSound(String source, AudioType type, boolean positional) {
         CompletableFuture<AudioInstance> future = new CompletableFuture<>();
+        if (notReady()) {
+            future.completeExceptionally(new ALException("Engine not ready"));
+            return future;
+        }
         String cacheKey = source + ":" + type + "&p=" + positional;
         AtomicReference<SoundBuffer> buffer = new AtomicReference<>();
         try {
@@ -47,7 +49,7 @@ public class AudioFactory {
                         return instance;
                     }, EXECUTOR);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw new SAPAudioException(e.getMessage());
                 }
             });
         } catch (Exception e) {
@@ -61,6 +63,11 @@ public class AudioFactory {
 
     public static CompletableFuture<AudioInstance> createStreamingSound(String source, AudioType type, boolean positional) {
         CompletableFuture<AudioInstance> future = new CompletableFuture<>();
+
+        if (notReady()) {
+            future.completeExceptionally(new ALException("Engine not ready"));
+            return future;
+        }
 
         try {
             BufferedInputStream is = new BufferedInputStream(openStream(source, type));
@@ -109,11 +116,13 @@ public class AudioFactory {
      * @param streaming read in chunks (if false - load all audio in memory)
      * @param settings set volume, position, max distance, ...
      */
-    public static void playOnce(String source, AudioType type, boolean positoinal, boolean streaming, Consumer<AudioInstance> settings) {
+    public static void playOnce(String source, AudioType type, boolean positoinal, boolean streaming, @Nullable Consumer<AudioInstance> settings) throws Throwable {
         CompletableFuture<AudioInstance> future = streaming ? createStreamingSound(source, type, positoinal) : createSound(source, type, positoinal);
+        if (future.isCompletedExceptionally())
+            throw future.exceptionNow();
         future.thenAccept(audioInstance -> {
             AudioCacheManager.autoClose(audioInstance);
-            settings.accept(audioInstance);
+            if (settings != null) settings.accept(audioInstance);
             audioInstance.play();
         });
     }
@@ -136,5 +145,14 @@ public class AudioFactory {
         }
 
         return new SoundBuffer(byteBuffer, format);
+    }
+
+
+    private static boolean notReady() {
+        boolean ready = OpenAlUtils.isOpenAlReady();
+        if (!ready) {
+            Constants.LOG.warn("OpenAL is not ready, operation is stopped");
+        }
+        return !ready;
     }
 }

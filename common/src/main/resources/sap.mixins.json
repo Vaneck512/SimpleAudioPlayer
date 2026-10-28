@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [],
   "client": [
-    "MixinMinecraft"
+    "MixinMinecraft",
+    "SoundEngineAccessor",
+    "SoundManagerAccessor"
   ],
   "server": [],
   "injectors": {

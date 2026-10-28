@@ -135,9 +135,9 @@ public class AudioCacheManager {
             return false;
         });
 
-        System.out.println(SOUND_BUFFERS);
-        System.out.println(SOUND_INSTANCES);
-        System.out.println(STREAMING_SOUND_INSTANCES);
+//        System.out.println(SOUND_BUFFERS);
+//        System.out.println(SOUND_INSTANCES);
+//        System.out.println(STREAMING_SOUND_INSTANCES);
 
     }
 
@@ -146,17 +146,18 @@ public class AudioCacheManager {
 
         THREAD.shutdownNow();
         AudioFactory.shutdown();
+        SAP.shutdown();
 
-        Constants.LOG.info("Closing active instances");
+//        Constants.LOG.info("Closing active instances");
         ACTIVE_INSTANCES.removeIf(AudioCacheManager::removeIf);
 
-        Constants.LOG.info("Closing streaming instances");
+//        Constants.LOG.info("Closing streaming instances");
         STREAMING_SOUND_INSTANCES.removeIf(AudioCacheManager::removeIf);
 
-        Constants.LOG.info("Closing sound instances");
+//        Constants.LOG.info("Closing sound instances");
         SOUND_INSTANCES.removeIf(AudioCacheManager::removeIf);
 
-        Constants.LOG.info("Closing sound buffers");
+//        Constants.LOG.info("Closing sound buffers");
         SOUND_BUFFERS.entrySet().removeIf(entry -> {
             SoundBuffer buffer = entry.getValue();
 
