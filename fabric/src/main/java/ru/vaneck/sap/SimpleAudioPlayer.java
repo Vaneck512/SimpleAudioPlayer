@@ -9,11 +9,7 @@ import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
 import ru.vaneck.sap.lib.sound.AudioFactory;
 import ru.vaneck.sap.lib.sound.AudioType;
-import ru.vaneck.sap.lib.sound.model.AlErrorHandler;
-import ru.vaneck.sap.lib.sound.model.AudioInstance;
 import ru.vaneck.sap.lib.sound.model.SoundInstance;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 public class SimpleAudioPlayer implements ModInitializer {
 
@@ -63,7 +59,7 @@ public class SimpleAudioPlayer implements ModInitializer {
                                         .setPosition(new Vector3f(0, -58, 0))
                                         .setLooping(true)
                                         .maxDistance(20)
-                                        .ReferenceDistance(0);
+                                        .setReferenceDistance(0);
 //                                new Thread(() -> {
 //                                    try {
 //                                        Thread.sleep(16000);
@@ -111,9 +107,11 @@ public class SimpleAudioPlayer implements ModInitializer {
                 } catch (Exception e) {
                     Constants.LOG.error(e.getLocalizedMessage());
                     throw new RuntimeException(e);
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
                 }
 
-                return 1;
+                        return 1;
             }))));
 //            dispatcher.register(ClientCommands.literal("play").executes(context -> {
 //                AL10.alDistanceModel(AL11.AL_EXPONENT_DISTANCE);
