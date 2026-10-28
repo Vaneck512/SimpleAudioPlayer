@@ -34,7 +34,6 @@ public class SoundBuffer {
     }
 
     public void close() {
-        Constants.LOG.info("1234567");
         cleanup();
         this.closed = true;
     }
