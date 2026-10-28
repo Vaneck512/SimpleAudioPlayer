@@ -43,6 +43,11 @@ public class AudioCacheManager {
         });
     }
 
+    /**
+     * Tracking and closing
+     * OpenAL sources upon
+     * completion of playback
+     */
     public static AudioInstance autoClose(AudioInstance audioInstance) {
         if (audioInstance instanceof SoundInstance soundInstance)
             SOUND_INSTANCES.add(soundInstance);
@@ -52,15 +57,15 @@ public class AudioCacheManager {
         return audioInstance;
     }
 
+    /**
+     * Track all SoundSources
+     * to hold their Buffers in cache
+     * there's no auto closing
+     */
     public static AudioInstance track(AudioInstance instance) {
         ACTIVE_INSTANCES.add(instance);
         return instance;
     }
-
-//    public static StreamingSoundInstance autoClean(StreamingSoundInstance soundInstance) {
-//        STREAMING_SOUND_INSTANCES.add(soundInstance);
-//        return soundInstance;
-//    }
 
     static {
         THREAD.scheduleAtFixedRate(() -> Minecraft.getInstance().execute(AudioCacheManager::cleanUp), 250, 250, TimeUnit.MILLISECONDS);
@@ -101,7 +106,7 @@ public class AudioCacheManager {
         SOUND_BUFFERS.entrySet().removeIf(entries -> {
             SoundBuffer buffer = entries.getValue();
             if (!activeBuffers.contains(buffer.getBufferId())) {
-                buffer.close();
+                if (!buffer.isClosed()) buffer.close();
                 return true;
             }
             return false;
@@ -126,9 +131,9 @@ public class AudioCacheManager {
             return false;
         });
 
-        System.out.println(SOUND_BUFFERS);
-        System.out.println(SOUND_INSTANCES);
-        System.out.println(STREAMING_SOUND_INSTANCES);
+//        System.out.println(SOUND_BUFFERS);
+//        System.out.println(SOUND_INSTANCES);
+//        System.out.println(STREAMING_SOUND_INSTANCES);
 
     }
 
