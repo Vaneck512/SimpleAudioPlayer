@@ -21,13 +21,13 @@ public class SoundInstance implements AudioInstance, Closeable {
         alSourcei(sourceId, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
         alSourcei(sourceId, AL_SOURCE_RELATIVE, relative ? AL_TRUE : AL_FALSE);
 
-        if (!relative) {
+//        if (!relative) {
             AL10.alSourcei(
                     this.sourceId,
                     AL_DISTANCE_MODEL,
                     AL11.AL_LINEAR_DISTANCE_CLAMPED
             );
-        }
+//        }
     }
 
     public void cleanup() {
@@ -85,6 +85,12 @@ public class SoundInstance implements AudioInstance, Closeable {
     }
 
     @Override
+    public SoundInstance setRelative(boolean relative) {
+        alSourcei(sourceId, AL_SOURCE_RELATIVE, relative ? AL_TRUE : AL_FALSE);
+        return this;
+    }
+
+    @Override
     public SoundInstance maxDistance(float distance) {
         alSourcef(this.sourceId, AL_MAX_DISTANCE, distance);
         return this;
@@ -93,6 +99,16 @@ public class SoundInstance implements AudioInstance, Closeable {
     @Override
     public SoundInstance ReferenceDistance(float distance) {
         alSourcef(this.sourceId, AL_REFERENCE_DISTANCE, distance);
+        return this;
+    }
+
+    @Override
+    public SoundInstance setAttenuationModel(int distanceModel) {
+        AL10.alSourcei(
+                this.sourceId,
+                AL_DISTANCE_MODEL,
+                distanceModel
+        );
         return this;
     }
 
@@ -120,8 +136,8 @@ public class SoundInstance implements AudioInstance, Closeable {
 
     @Override
     public void close() {
-        AL10.alSourceStop(this.sourceId);
-        AL10.alDeleteSources(this.sourceId);
+        if (closed) return;
+        cleanup();
         this.closed = true;
     }
 }
