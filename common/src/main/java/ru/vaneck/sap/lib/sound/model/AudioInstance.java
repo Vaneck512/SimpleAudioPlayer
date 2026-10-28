@@ -2,8 +2,6 @@ package ru.vaneck.sap.lib.sound.model;
 
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
-import org.lwjgl.openal.AL11;
-import ru.vaneck.sap.lib.sound.model.streaming.StreamingSoundInstance;
 
 import java.io.Closeable;
 
@@ -101,7 +99,7 @@ public interface AudioInstance extends Closeable {
      * @param distance the reference distance value
      * @return the current {@link AudioInstance} instance, for method chaining
      */
-    AudioInstance ReferenceDistance(float distance);
+    AudioInstance setReferenceDistance(float distance);
 
     /**
      * Sets the distance-based sound attenuation model.

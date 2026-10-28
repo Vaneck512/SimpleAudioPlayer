@@ -97,7 +97,7 @@ public class SoundInstance implements AudioInstance, Closeable {
     }
 
     @Override
-    public SoundInstance ReferenceDistance(float distance) {
+    public SoundInstance setReferenceDistance(float distance) {
         alSourcef(this.sourceId, AL_REFERENCE_DISTANCE, distance);
         return this;
     }

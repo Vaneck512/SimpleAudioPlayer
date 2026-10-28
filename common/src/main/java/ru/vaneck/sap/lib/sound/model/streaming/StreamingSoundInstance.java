@@ -217,7 +217,7 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
     }
 
     @Override
-    public StreamingSoundInstance ReferenceDistance(float distance) {
+    public StreamingSoundInstance setReferenceDistance(float distance) {
         alSourcef(this.sourceId, AL_REFERENCE_DISTANCE, distance);
         return this;
     }

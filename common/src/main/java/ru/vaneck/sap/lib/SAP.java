@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unused")
 public class SAP {
 
     private static final ExecutorService EXECUTOR =
@@ -70,6 +71,14 @@ public class SAP {
         play(uri, uri_type, false, true, null);
     }
 
+    public static void play(@NotNull String uri, @NotNull AudioType uri_type, @NotNull Consumer<AudioInstance> settings) {
+        play(uri, uri_type, false, false, settings);
+    }
+
+    public static void playStream(@NotNull String uri, @NotNull AudioType uri_type, @NotNull Consumer<AudioInstance> settings) {
+        play(uri, uri_type, false, true, settings);
+    }
+
     public static void play(@NotNull String uri, @NotNull AudioType uri_type, float volume) {
         play(uri, uri_type, false, false, i -> i.setVolume(volume));
     }
@@ -78,7 +87,25 @@ public class SAP {
         play(uri, uri_type, false, true, i -> i.setVolume(volume));
     }
 
+    public static void play(@NotNull String uri, @NotNull AudioType uri_type, float volume, @NotNull Consumer<AudioInstance> settings) {
+        play(uri, uri_type, false, false, settings.andThen(i -> i.setVolume(volume)));
+    }
 
+    public static void playStream(@NotNull String uri, @NotNull AudioType uri_type, float volume, @NotNull Consumer<AudioInstance> settings) {
+        play(uri, uri_type, false, true, settings.andThen(i -> i.setVolume(volume)));
+    }
+
+
+    /**
+     * Plays audio from the specified URI with the given parameters.
+     *
+     * @param uri the URI string of the audio file; URL, File path or ResourceLocation (Identifier)
+     * @param uri_type the type of the URI;
+     * @param positional indicates whether the sound is positional (3D sound, works in world)
+     * @param stream determines whether the audio should be streamed rather than fully preloaded <br>
+     *               !Do not create many stream instances at the same time or use this if you know what you're doing!
+     * @param settings custom settings for the audio instance; F.eg. coordinates, loop, volume, ... . can be null
+     */
     public static void play(@NotNull String uri, @NotNull AudioType uri_type, boolean positional, boolean stream, @Nullable Consumer<AudioInstance> settings) {
         CompletableFuture.runAsync(() -> {
             while (!OpenAlUtils.isOpenAlReady()) {
@@ -89,13 +116,13 @@ public class SAP {
                     Constants.LOG.error("Thread Interrupted", e);
                 }
             }
-            try {
+//            try {
                 AudioFactory.playOnce(uri, uri_type, positional, stream, settings);
-            } catch (SocketTimeoutException e) {
-                Constants.LOG.error("Read timed out, check your url or connection. Message: {}", e.getMessage());
-            } catch (Throwable e) {
-                Constants.LOG.error("Failed to play \"{}\". {}", uri, e.getMessage(), e);
-            }
+//            } catch (SocketTimeoutException e) {
+//                Constants.LOG.error("Read timed out, check your url or connection. Message: {}", e.getMessage());
+//            } catch (Throwable e) {
+//                Constants.LOG.error("Failed to play \"{}\". {}", uri, e.getMessage(), e);
+//            }
         }, EXECUTOR);
     }
 
