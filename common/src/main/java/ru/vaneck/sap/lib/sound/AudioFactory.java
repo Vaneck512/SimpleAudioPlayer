@@ -49,7 +49,7 @@ public class AudioFactory {
                         return instance;
                     }, EXECUTOR);
                 } catch (Exception e) {
-                    throw new SAPAudioException(e.getMessage());
+                    future.completeExceptionally(e);
                 }
             });
         } catch (Exception e) {
@@ -86,7 +86,8 @@ public class AudioFactory {
                             return instance;
                         } catch (Exception e) {
                             try { finalAudioStream.close(); } catch (Exception ignored) {}
-                            throw new RuntimeException(e);
+                            future.completeExceptionally(e);
+                            return null;
                         }
                     }, EXECUTOR);
 
@@ -116,10 +117,13 @@ public class AudioFactory {
      * @param streaming read in chunks (if false - load all audio in memory)
      * @param settings set volume, position, max distance, ...
      */
-    public static void playOnce(String source, AudioType type, boolean positoinal, boolean streaming, @Nullable Consumer<AudioInstance> settings) throws Throwable {
+    public static void playOnce(String source, AudioType type, boolean positoinal, boolean streaming, @Nullable Consumer<AudioInstance> settings) {
         CompletableFuture<AudioInstance> future = streaming ? createStreamingSound(source, type, positoinal) : createSound(source, type, positoinal);
-        if (future.isCompletedExceptionally())
-            throw future.exceptionNow();
+//        if (future.isCompletedExceptionally())
+            future.exceptionallyAsync(throwable -> {
+                Constants.LOG.error(throwable.toString());
+                return null;
+            });
         future.thenAccept(audioInstance -> {
             AudioCacheManager.autoClose(audioInstance);
             if (settings != null) settings.accept(audioInstance);
