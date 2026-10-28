@@ -55,13 +55,13 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
         }
         pcm = scratch;
 
-        if (!relative) {
+//        if (!relative) {
             alSourcei(
                     this.sourceId,
                     AL_DISTANCE_MODEL,
                     AL11.AL_LINEAR_DISTANCE_CLAMPED
             );
-        }
+//        }
     }
 
     public void setStream(AudioStream stream) {
@@ -199,7 +199,14 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
 
     @Override
     public StreamingSoundInstance setLooping(boolean loop) {
+        alSourcei(sourceId, AL_LOOPING, AL_FALSE);
         this.loop = loop;
+        return this;
+    }
+
+    @Override
+    public StreamingSoundInstance setRelative(boolean relative) {
+        alSourcei(sourceId, AL_SOURCE_RELATIVE, relative ? AL_TRUE : AL_FALSE);
         return this;
     }
 
@@ -212,6 +219,16 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
     @Override
     public StreamingSoundInstance ReferenceDistance(float distance) {
         alSourcef(this.sourceId, AL_REFERENCE_DISTANCE, distance);
+        return this;
+    }
+
+    @Override
+    public StreamingSoundInstance setAttenuationModel(int distanceModel) {
+        AL10.alSourcei(
+                this.sourceId,
+                AL_DISTANCE_MODEL,
+                distanceModel
+        );
         return this;
     }
 
@@ -252,9 +269,9 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
         if (closed) throw new IllegalStateException("SoundSource is closed");
     }
 
-    public void cleanup() throws Exception {
-        close();
-    }
+//    public void cleanup() throws Exception {
+//        close();
+//    }
 
     @Override
     public void close() {
