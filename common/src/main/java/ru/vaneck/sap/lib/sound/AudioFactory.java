@@ -119,9 +119,8 @@ public class AudioFactory {
      */
     public static void playOnce(String source, AudioType type, boolean positoinal, boolean streaming, @Nullable Consumer<AudioInstance> settings) {
         CompletableFuture<AudioInstance> future = streaming ? createStreamingSound(source, type, positoinal) : createSound(source, type, positoinal);
-//        if (future.isCompletedExceptionally())
             future.exceptionallyAsync(throwable -> {
-                Constants.LOG.error(throwable.toString());
+                Constants.LOG.error("Failed to play source, {}", throwable.toString());
                 return null;
             });
         future.thenAccept(audioInstance -> {
