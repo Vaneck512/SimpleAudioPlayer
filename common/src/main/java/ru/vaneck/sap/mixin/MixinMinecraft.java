@@ -1,8 +1,5 @@
 package ru.vaneck.sap.mixin;
 
-import ru.vaneck.sap.CommonClass;
-import ru.vaneck.sap.Constants;
-import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,16 +9,8 @@ import ru.vaneck.sap.lib.AudioCacheManager;
 
 @Mixin(Minecraft.class)
 public class MixinMinecraft {
-
-    @Inject(at = @At("TAIL"), method = "<init>")
-    private void init(CallbackInfo info) {
-
-        Constants.LOG.info("This line is printed by an example mod common mixin!");
-        Constants.LOG.info("MC Version: {}", SharedConstants.getCurrentVersion().name());
-    }
-
     @Inject(method = "close", at=@At("TAIL"))
-    public void test(CallbackInfo ci) {
+    public void gameOnClose$SAP(CallbackInfo ci) {
         AudioCacheManager.clearAll();
     }
 }
