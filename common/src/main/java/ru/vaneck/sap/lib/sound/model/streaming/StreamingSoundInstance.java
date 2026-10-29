@@ -1,12 +1,17 @@
 package ru.vaneck.sap.lib.sound.model.streaming;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
+import ru.vaneck.sap.lib.sound.MinecraftSettingsListeners;
 import ru.vaneck.sap.lib.sound.model.AudioInstance;
 
 import java.nio.ShortBuffer;
+import java.util.Objects;
 
 import static org.lwjgl.openal.AL10.*;
 import static org.lwjgl.system.MemoryUtil.*;
@@ -25,6 +30,10 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
     private boolean closed;
     private boolean started;
     private boolean ended;
+
+    private SoundSource soundChannel = SoundSource.MASTER;
+    private float volume;
+    private long volumeListenerId;
 
     public StreamingSoundInstance(boolean loop, boolean relative) {
         this.loop = loop;
@@ -55,13 +64,18 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
         }
         pcm = scratch;
 
-//        if (!relative) {
-            alSourcei(
-                    this.sourceId,
-                    AL_DISTANCE_MODEL,
-                    AL11.AL_LINEAR_DISTANCE_CLAMPED
-            );
-//        }
+
+        alSourcei(
+                this.sourceId,
+                AL_DISTANCE_MODEL,
+                AL11.AL_LINEAR_DISTANCE_CLAMPED
+        );
+
+        this.volumeListenerId = MinecraftSettingsListeners.registerVolumeListener((soundSource, newVolume) -> {
+            // Every channel's final volume includes the master volume.
+            if (soundSource == this.soundChannel || soundSource == SoundSource.MASTER) this.setVolume(this.volume);
+        });
+        this.setVolume(this.volume);
     }
 
     public void setStream(AudioStream stream) {
@@ -254,10 +268,25 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
     }
 
     @Override
-    public StreamingSoundInstance setVolume(float gain) {
+    public StreamingSoundInstance setVolume(float volume) {
         ensureOpen();
-        alSourcef(sourceId, AL_GAIN, gain);
+        this.volume = volume;
+        float actualVolume = this.volume;
+        float soundSourceVolume = Minecraft.getInstance().options.getFinalSoundSourceVolume(this.soundChannel);
+        actualVolume = actualVolume * soundSourceVolume; //Calculate percentage of volume by this audio's sound channel
+        alSourcef(sourceId, AL_GAIN, actualVolume);
         return this;
+    }
+
+    @Override
+    public void setSoundChannel(@NotNull SoundSource channel) {
+        this.soundChannel = Objects.requireNonNull(channel);
+        this.setVolume(this.volume);
+    }
+
+    @Override
+    public @NotNull SoundSource getSoundChannel() {
+        return this.soundChannel;
     }
 
     public void setProperty(int param, float value) {
@@ -277,6 +306,7 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
     public void close() {
         if (closed) return;
         stop();
+        MinecraftSettingsListeners.unregisterVolumeListener(this.volumeListenerId);
         closed = true;
         if (stream != null) {
             try {
