@@ -72,7 +72,7 @@ public class AudioUtils {
                 Identifier id = Identifier.tryParse(source);
                 if (id == null) throw new SAPAudioException("Invalid resource identifier: " + source);
                 Optional<Resource> resource = Minecraft.getInstance().getResourceManager().getResource(id);
-                if (resource.isEmpty()) throw new SAPAudioException("Audio resource not found: " + source);
+                if (resource.isEmpty()) throw new SAPAudioException("Audio resource not found in Minecraft resources: " + source);
                 yield resource.get().open();
             }
         };
