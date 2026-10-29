@@ -1,5 +1,6 @@
 package ru.vaneck.sap.lib;
 
+import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.jspecify.annotations.Nullable;
@@ -30,23 +31,29 @@ public class SAP {
     }
 
     public static void playPositional(@NotNull String uri, @NotNull AudioType uri_type, @NotNull Consumer<AudioInstance> settings) {
-        play(uri, uri_type, true, false, settings);
+        play(uri, uri_type, true, false, null, settings);
     }
 
     public static void playStreamPositional(@NotNull String uri, @NotNull AudioType uri_type, @NotNull Consumer<AudioInstance> settings) {
-        play(uri, uri_type, true, true, settings);
+        play(uri, uri_type, true, true, null, settings);
     }
 
-    public static void playPositional(@NotNull String uri, @NotNull AudioType uri_type, float volume) {
-        play(uri, uri_type, true, false, i -> i.setVolume(volume));
+    public static void playPositional(@NotNull String uri, @NotNull AudioType uri_type, float volume, float x, float y, float z) {
+        play(uri, uri_type, true, false, null, i -> {
+            i.setVolume(volume);
+            i.setPosition(new Vector3f(x, y, z));
+        });
     }
 
-    public static void playStreamPositional(@NotNull String uri, @NotNull AudioType uri_type, float volume) {
-        play(uri, uri_type, true, true, i -> i.setVolume(volume));
+    public static void playStreamPositional(@NotNull String uri, @NotNull AudioType uri_type, float volume, float x, float y, float z) {
+        play(uri, uri_type, true, true, null, i -> {
+            i.setVolume(volume);
+            i.setPosition(new Vector3f(x, y, z));
+        });
     }
 
     public static void playPositional(@NotNull String uri, @NotNull AudioType uri_type, Vector3f position, float volume) {
-        play(uri, uri_type, true, false,
+        play(uri, uri_type, true, false, null,
                 i -> {
                     i.setVolume(volume);
                     i.setPosition(position);
@@ -55,7 +62,7 @@ public class SAP {
     }
 
     public static void playStreamPositional(@NotNull String uri, @NotNull AudioType uri_type, Vector3f position, float volume) {
-        play(uri, uri_type, true, true,
+        play(uri, uri_type, true, true, null,
                 i -> {
                     i.setVolume(volume);
                     i.setPosition(position);
@@ -63,36 +70,58 @@ public class SAP {
         );
     }
 
-    public static void play(@NotNull String uri, @NotNull AudioType uri_type) {
-        play(uri, uri_type, false, false, null);
-    }
-
-    public static void playStream(@NotNull String uri, @NotNull AudioType uri_type) {
-        play(uri, uri_type, false, true, null);
-    }
-
-    public static void play(@NotNull String uri, @NotNull AudioType uri_type, @NotNull Consumer<AudioInstance> settings) {
-        play(uri, uri_type, false, false, settings);
-    }
-
-    public static void playStream(@NotNull String uri, @NotNull AudioType uri_type, @NotNull Consumer<AudioInstance> settings) {
-        play(uri, uri_type, false, true, settings);
-    }
-
-    public static void play(@NotNull String uri, @NotNull AudioType uri_type, float volume) {
-        play(uri, uri_type, false, false, i -> i.setVolume(volume));
-    }
-
-    public static void playStream(@NotNull String uri, @NotNull AudioType uri_type, float volume) {
-        play(uri, uri_type, false, true, i -> i.setVolume(volume));
-    }
 
     public static void play(@NotNull String uri, @NotNull AudioType uri_type, float volume, @NotNull Consumer<AudioInstance> settings) {
-        play(uri, uri_type, false, false, settings.andThen(i -> i.setVolume(volume)));
+        play(uri, uri_type, false, false, null, settings.andThen(i -> i.setVolume(volume)));
     }
 
     public static void playStream(@NotNull String uri, @NotNull AudioType uri_type, float volume, @NotNull Consumer<AudioInstance> settings) {
-        play(uri, uri_type, false, true, settings.andThen(i -> i.setVolume(volume)));
+        play(uri, uri_type, false, true, null, settings.andThen(i -> i.setVolume(volume)));
+    }
+
+
+    public static void play(@NotNull String uri, @NotNull AudioType uri_type, @NotNull Consumer<AudioInstance> settings) {
+        play(uri, uri_type, false, false, null, settings);
+    }
+
+    public static void playStream(@NotNull String uri, @NotNull AudioType uri_type, @NotNull Consumer<AudioInstance> settings) {
+        play(uri, uri_type, false, true, null, settings);
+    }
+
+
+    public static void play(@NotNull String uri, @NotNull AudioType uri_type, @NotNull SoundSource channel, float volume) {
+        play(uri, uri_type, false, false, channel, i -> i.setVolume(volume));
+    }
+
+    public static void playStream(@NotNull String uri, @NotNull AudioType uri_type, @NotNull SoundSource channel, float volume) {
+        play(uri, uri_type, false, true, channel, i -> i.setVolume(volume));
+    }
+
+
+    public static void play(@NotNull String uri, @NotNull AudioType uri_type, @NotNull SoundSource channel) {
+        play(uri, uri_type, false, false, channel, null);
+    }
+
+    public static void playStream(@NotNull String uri, @NotNull AudioType uri_type, @NotNull SoundSource channel) {
+        play(uri, uri_type, false, true, channel, null);
+    }
+
+
+    public static void play(@NotNull String uri, @NotNull AudioType uri_type, float volume) {
+        play(uri, uri_type, false, false, null, i -> i.setVolume(volume));
+    }
+
+    public static void playStream(@NotNull String uri, @NotNull AudioType uri_type, float volume) {
+        play(uri, uri_type, false, true, null, i -> i.setVolume(volume));
+    }
+
+    
+    public static void play(@NotNull String uri, @NotNull AudioType uri_type) {
+        play(uri, uri_type, false, false, null, null);
+    }
+
+    public static void playStream(@NotNull String uri, @NotNull AudioType uri_type) {
+        play(uri, uri_type, false, true, null, null);
     }
 
 
@@ -106,7 +135,7 @@ public class SAP {
      *               !Do not create many stream instances at the same time or use this if you know what you're doing!
      * @param settings custom settings for the audio instance; F.eg. coordinates, loop, volume, ... . can be null
      */
-    public static void play(@NotNull String uri, @NotNull AudioType uri_type, boolean positional, boolean stream, @Nullable Consumer<AudioInstance> settings) {
+    public static void play(@NotNull String uri, @NotNull AudioType uri_type, boolean positional, boolean stream, @Nullable SoundSource channel, @Nullable Consumer<AudioInstance> settings) {
         CompletableFuture.runAsync(() -> {
             while (!OpenAlUtils.isOpenAlReady()) {
                 try {
@@ -116,13 +145,10 @@ public class SAP {
                     Constants.LOG.error("Thread Interrupted", e);
                 }
             }
-//            try {
-                AudioFactory.playOnce(uri, uri_type, positional, stream, settings);
-//            } catch (SocketTimeoutException e) {
-//                Constants.LOG.error("Read timed out, check your url or connection. Message: {}", e.getMessage());
-//            } catch (Throwable e) {
-//                Constants.LOG.error("Failed to play \"{}\". {}", uri, e.getMessage(), e);
-//            }
+            Consumer<AudioInstance> finalSettings = settings;
+            if (channel != null && settings != null)
+                finalSettings = settings.andThen(s -> s.setSoundChannel(channel));
+            AudioFactory.playOnce(uri, uri_type, positional, stream, finalSettings);
         }, EXECUTOR);
     }
 
