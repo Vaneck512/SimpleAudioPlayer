@@ -1,6 +1,8 @@
 package ru.vaneck.sap.lib.sound.model;
 
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.io.Closeable;
@@ -15,7 +17,7 @@ public interface AudioInstance extends Closeable {
     boolean isClosed();
 
     /**
-     * Starts or resumes playback of the audio instance.
+     * Starts or resumes or restarts playback of the audio instance.
      *
      * @return the current {@link AudioInstance} instance, for method chaining
      */
@@ -29,7 +31,7 @@ public interface AudioInstance extends Closeable {
     AudioInstance pause();
 
     /**
-     * Stops the audio playback entirely and resets its position.
+     * Stops the audio playback entirely and resets its position (next start: 00:00).
      *
      * @return the current {@link AudioInstance} instance, for method chaining
      */
@@ -42,6 +44,10 @@ public interface AudioInstance extends Closeable {
      * @return the current {@link AudioInstance} instance, for method chaining
      */
     AudioInstance setVolume(float volume);
+
+    void setSoundChannel(@NotNull SoundSource channel);
+
+    @NotNull SoundSource getSoundChannel();
 
     /**
      * Sets the 3D coordinates of the sound source in space.
