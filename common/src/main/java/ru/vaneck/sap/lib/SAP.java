@@ -28,7 +28,7 @@ public class SAP {
 
     private static final ScheduledExecutorService SCHEDULED_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
 
-    public static void shutdown() {
+    protected static void shutdown() {
         EXECUTOR.shutdownNow();
         SCHEDULED_EXECUTOR.shutdown();
     }
