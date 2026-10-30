@@ -9,8 +9,11 @@ import ru.vaneck.sap.lib.sound.AudioFactory;
 import ru.vaneck.sap.lib.sound.AudioType;
 import ru.vaneck.sap.lib.sound.model.AudioInstance;
 import ru.vaneck.sap.lib.sound.model.OpenAlUtils;
+import ru.vaneck.sap.lib.sound.model.SoundInstance;
+import ru.vaneck.sap.lib.sound.model.streaming.StreamingSoundInstance;
 
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
@@ -136,18 +139,66 @@ public class SAP {
      * @param settings custom settings for the audio instance; F.eg. coordinates, loop, volume, ... . can be null
      */
     public static void play(@NotNull String uri, @NotNull AudioType uri_type, boolean positional, boolean stream, @Nullable SoundSource channel, @Nullable Consumer<AudioInstance> settings) {
-        CompletableFuture.runAsync(() -> SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
-            if (OpenAlUtils.isOpenAlReady()) {
-                Consumer<AudioInstance> finalSettings = settings;
-                if (channel != null && settings != null)
-                    finalSettings = settings.andThen(s -> s.setSoundChannel(channel));
-                AudioFactory.playOnce(uri, uri_type, positional, stream, finalSettings);
-                SCHEDULED_EXECUTOR.shutdown();
-            }
-        }, 0, 512, TimeUnit.MILLISECONDS), EXECUTOR).exceptionallyAsync(throwable -> {
-            Constants.LOG.error("Exception while playing sound: {}", throwable.toString());
+        runOnSoundEngineLoaded(() -> {
+            Consumer<AudioInstance> finalSettings = settings;
+            if (channel != null && settings != null)
+                finalSettings = settings.andThen(s -> s.setSoundChannel(channel));
+            AudioFactory.playOnce(uri, uri_type, positional, stream, finalSettings);
+        });
+    }
+
+    /**
+     * Creates {@link SoundInstance} asynchronously wrapped in completable future <br>
+     * You can pause, resume, or stop it, as well as set various parameters. <br>
+     * Note: you must close unused instances manually <br>
+     * @param uri the URI string of the audio file; URL, File path or ResourceLocation (Identifier)
+     * @param type the type of the URI;
+     * @param positional indicates whether the sound is positional (3D sound, works in world)
+     * @return {@link   CompletableFuture}
+     */
+    public static CompletableFuture<SoundInstance> create(String uri, AudioType type, boolean positional) {
+        return AudioFactory.createSound(uri, type, positional).thenApply(SoundInstance.class::cast).exceptionallyAsync(throwable -> {
+            Constants.LOG.error("Exception while creating sound instance: {}", throwable.toString());
             return null;
         });
+    }
+
+    /**
+     * Creates {@link StreamingSoundInstance} asynchronously wrapped in completable future <br>
+     * You can pause, resume, or stop it, as well as set various parameters. <br>
+     * Note: you must close unused instances manually <br>
+     * @param uri the URI string of the audio file; URL, File path or ResourceLocation (Identifier)
+     * @param type the type of the URI;
+     * @param positional indicates whether the sound is positional (3D sound, works in world)
+     * @return {@link   CompletableFuture}
+     */
+    public static CompletableFuture<StreamingSoundInstance> createStreaming(String uri, AudioType type, boolean positional) {
+        return AudioFactory.createSound(uri, type, positional).thenApply(StreamingSoundInstance.class::cast).exceptionallyAsync(throwable -> {
+            Constants.LOG.error("Exception while creating sound instance: {}", throwable.toString());
+            return null;
+        });
+    }
+
+    /**
+     * Runnable will be executed automatically once Minecraft's sound engine has loaded
+     * @param runnable function
+     */
+    public static void runOnSoundEngineLoaded(Runnable runnable) {
+        AtomicReference<ScheduledFuture<?>> futureRef = new AtomicReference<>();
+
+        ScheduledFuture<?> future = SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
+            try {
+                if (OpenAlUtils.isOpenAlReady() && null != futureRef.get()) {
+                    futureRef.get().cancel(true); // to stop next run
+                    runnable.run();
+                }
+            } catch (Throwable exception) {
+                futureRef.get().cancel(false);
+                Constants.LOG.error("Exception while playing sound: {}", exception.toString());
+            }
+        }, 0, 512, TimeUnit.MILLISECONDS);
+
+        futureRef.set(future);
     }
 
     public boolean isReadyForPlaying() {
