@@ -13,7 +13,7 @@ public class CommonClass {
             Constants.LOG.info("Simple Audio Player is loaded");
         }
 
-        SAP.play("https://www.newgrounds.com/audio/download/1397300", AudioType.URL, SoundSource.MUSIC, 0.25F);
+        SAP.play("https://www.newgrounds.com/audio/download/1397300", AudioType.URL, SoundSource.RECORDS, 0.25F);
 //        SAP.play("C:\\Users\\Ivan\\Music\\music\\Tryhardninja-Follow-Me.ogg", AudioType.FILE, 0.1F);
 
 //        new Thread(() -> {
