@@ -10,10 +10,7 @@ import ru.vaneck.sap.lib.sound.AudioType;
 import ru.vaneck.sap.lib.sound.model.AudioInstance;
 import ru.vaneck.sap.lib.sound.model.OpenAlUtils;
 
-import java.net.SocketTimeoutException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
@@ -26,8 +23,11 @@ public class SAP {
                 return thread;
             });
 
+    private static final ScheduledExecutorService SCHEDULED_EXECUTOR = Executors.newSingleThreadScheduledExecutor();
+
     public static void shutdown() {
         EXECUTOR.shutdownNow();
+        SCHEDULED_EXECUTOR.shutdown();
     }
 
     public static void playPositional(@NotNull String uri, @NotNull AudioType uri_type, @NotNull Consumer<AudioInstance> settings) {
@@ -136,20 +136,18 @@ public class SAP {
      * @param settings custom settings for the audio instance; F.eg. coordinates, loop, volume, ... . can be null
      */
     public static void play(@NotNull String uri, @NotNull AudioType uri_type, boolean positional, boolean stream, @Nullable SoundSource channel, @Nullable Consumer<AudioInstance> settings) {
-        CompletableFuture.runAsync(() -> {
-            while (!OpenAlUtils.isOpenAlReady()) {
-                try {
-                    Thread.sleep(512);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    Constants.LOG.error("Thread Interrupted", e);
-                }
+        CompletableFuture.runAsync(() -> SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
+            if (OpenAlUtils.isOpenAlReady()) {
+                Consumer<AudioInstance> finalSettings = settings;
+                if (channel != null && settings != null)
+                    finalSettings = settings.andThen(s -> s.setSoundChannel(channel));
+                AudioFactory.playOnce(uri, uri_type, positional, stream, finalSettings);
+                SCHEDULED_EXECUTOR.shutdown();
             }
-            Consumer<AudioInstance> finalSettings = settings;
-            if (channel != null && settings != null)
-                finalSettings = settings.andThen(s -> s.setSoundChannel(channel));
-            AudioFactory.playOnce(uri, uri_type, positional, stream, finalSettings);
-        }, EXECUTOR);
+        }, 0, 512, TimeUnit.MILLISECONDS), EXECUTOR).exceptionallyAsync(throwable -> {
+            Constants.LOG.error("Exception while playing sound: {}", throwable.toString());
+            return null;
+        });
     }
 
     public boolean isReadyForPlaying() {
