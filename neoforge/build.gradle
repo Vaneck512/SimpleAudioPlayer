@@ -1,17 +1,14 @@
 plugins {
     id 'multiloader-loader'
     id 'net.neoforged.moddev'
-    id 'com.gradleup.shadow' version "9.6.1"
-}
-
-configurations {
-    shadowImplementation
-    implementation.extendsFrom(shadowImplementation)
 }
 
 dependencies {
-    shadowImplementation("javazoom:jlayer:1.0.1")
-    shadowImplementation("org.overviewproject:mime-types:2.0.0")
+    implementation("javazoom:jlayer:1.0.1")
+    implementation("org.overviewproject:mime-types:2.0.0")
+
+//    jarJar ("javazoom:jlayer:1.0.1")
+//    jarJar ("org.overviewproject:mime-types:2.0.0")
 }
 
 neoForge {
@@ -48,27 +45,6 @@ neoForge {
             sourceSet sourceSets.main
         }
     }
-}
-
-shadowJar {
-    configurations = [project.configurations.shadowImplementation]
-    archiveClassifier = ''
-
-    relocate 'org.overviewproject', '%s.shadow.org.overviewproject'.formatted(project.group)
-//    relocate 'org.mozilla', '%s.shadow.org.mozilla'.formatted(project.group)
-    relocate 'javazoom.jl', '%s.shadow.javazoom.jl'.formatted(project.group)
-
-    exclude 'META-INF/maven/**'
-}
-
-tasks.named('jar') {
-    enabled = false
-    dependsOn shadowJar
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-tasks.named('assemble') {
-    dependsOn shadowJar
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }

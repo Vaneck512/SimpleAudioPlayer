@@ -1,12 +1,6 @@
 plugins {
     id 'multiloader-loader'
     id 'net.fabricmc.fabric-loom'
-    id 'com.gradleup.shadow' version "9.6.1"
-}
-
-configurations {
-    shadowImplementation
-    implementation.extendsFrom(shadowImplementation)
 }
 
 def env = [:]
@@ -25,8 +19,8 @@ dependencies {
     minecraft("com.mojang:minecraft:${minecraft_version}")
     implementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
     implementation("net.fabricmc.fabric-api:fabric-api:${fabric_version}")
-    shadowImplementation("javazoom:jlayer:1.0.1")
-    shadowImplementation("org.overviewproject:mime-types:2.0.0")
+    include implementation("javazoom:jlayer:1.0.1")
+    include implementation("org.overviewproject:mime-types:2.0.0")
 }
 
 loom {
@@ -55,30 +49,6 @@ loom {
     }
 
 }
-
-shadowJar {
-    configurations = [project.configurations.shadowImplementation]
-    archiveClassifier = ''
-
-    mergeServiceFiles();
-
-    relocate 'org.overviewproject', '%s.shadow.org.overviewproject'.formatted(project.group)
-    relocate 'org.mozilla', '%s.shadow.org.mozilla'.formatted(project.group)
-    relocate 'javazoom.jl', '%s.shadow.javazoom.jl'.formatted(project.group)
-
-    exclude 'META-INF/maven/**'
-    exclude 'META-INF/*.SF'
-    exclude 'META-INF/*.DSA'
-    exclude 'META-INF/*.RSA'
-}
-
-jar {
-    enabled = false
-    dependsOn shadowJar
-}
-
-assemble.dependsOn(shadowJar)
-
 
 // Implement mcgradleconventions loader attribute
 def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
