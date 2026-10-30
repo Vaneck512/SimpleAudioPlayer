@@ -22,6 +22,7 @@ public class AudioFactory {
     public static final ExecutorService EXECUTOR =
             Executors.newCachedThreadPool(runnable -> {
                 Thread thread = new Thread(runnable, "SAP audio worker");
+//                thread.setContextClassLoader(AudioFactory.class.getClassLoader());
                 thread.setDaemon(true);
                 return thread;
             });
