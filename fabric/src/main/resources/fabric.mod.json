@@ -8,8 +8,8 @@
         "${mod_author}"
     ],
     "contact": {
-        "homepage": "https://fabricmc.net/",
-        "sources": "https://github.com/FabricMC/fabric-example-mod"
+        "homepage": "https://modrinth.com/mod/sap",
+        "sources": "https://github.com/Vaneck512/SimpleAudioPlayer/"
     },
     "license": "${license}",
     "icon": "${mod_id}.png",
@@ -18,6 +18,16 @@
         "main": [
             "ru.vaneck.sap.SimpleAudioPlayer"
         ]
+    },
+    "custom": {
+        "modmenu": {
+            "badges": ["library"],
+            "links": {
+                "Author": "https://www.youtube.com/@vaneck512-mods"
+            },
+            "update_checker": true,
+            "background": "sap_banner.png"
+        }
     },
     "mixins": [
         "${mod_id}.mixins.json",
