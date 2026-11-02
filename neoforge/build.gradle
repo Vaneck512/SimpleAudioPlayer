@@ -1,6 +1,7 @@
 plugins {
     id 'multiloader-loader'
     id 'net.neoforged.moddev'
+    id "me.modmuss50.mod-publish-plugin" version "2.2.1"
 }
 
 dependencies {
@@ -67,3 +68,22 @@ sourceSets.configureEach {
         }
     }
 }
+
+//publishMods {
+//    file = jar.archiveFile
+//    changelog = "Changelog"
+//    type = STABLE
+//    modLoaders.add("neoforge")
+//
+//    modrinth.configure {
+//        accessToken = providers.environmentVariable("MODRINTH_API_KEY")
+//        projectId = "NvXbe1aV"
+//        minecraftVersions.add("${minecraft_version}")
+//
+//        environment = CLIENT_ONLY
+//
+//        additionalFile(sourcesJar) {
+//            type = SOURCES_JAR
+//        }
+//    }
+//}
