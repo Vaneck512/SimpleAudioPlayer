@@ -119,7 +119,7 @@ public class SoundInstance implements AudioInstance, Closeable {
     }
 
     @Override
-    public SoundInstance maxDistance(float distance) {
+    public SoundInstance setMaxDistance(float distance) {
         alSourcef(this.sourceId, AL_MAX_DISTANCE, distance);
         return this;
     }
