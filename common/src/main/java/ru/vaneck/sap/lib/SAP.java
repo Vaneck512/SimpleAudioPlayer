@@ -157,10 +157,7 @@ public class SAP {
      * @return {@link   CompletableFuture}
      */
     public static CompletableFuture<SoundInstance> create(String uri, AudioType type, boolean positional) {
-        return AudioFactory.createSound(uri, type, positional).thenApply(SoundInstance.class::cast).exceptionallyAsync(throwable -> {
-            Constants.LOG.error("Exception while creating sound instance: {}", throwable.toString());
-            return null;
-        });
+        return AudioFactory.createSound(uri, type, positional).thenApply(SoundInstance.class::cast);
     }
 
     /**
@@ -173,10 +170,7 @@ public class SAP {
      * @return {@link   CompletableFuture}
      */
     public static CompletableFuture<StreamingSoundInstance> createStreaming(String uri, AudioType type, boolean positional) {
-        return AudioFactory.createSound(uri, type, positional).thenApply(StreamingSoundInstance.class::cast).exceptionallyAsync(throwable -> {
-            Constants.LOG.error("Exception while creating sound instance: {}", throwable.toString());
-            return null;
-        });
+        return AudioFactory.createSound(uri, type, positional).thenApply(StreamingSoundInstance.class::cast);
     }
 
     /**
