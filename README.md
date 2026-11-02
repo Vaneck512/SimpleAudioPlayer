@@ -1,7 +1,7 @@
 <img src="common/src/main/resources/sap_banner.png" alt="'Simple Audio Player'">
 
 # SimpleAudioPlayer (client side)
-## A library mod for Minecraft that lets you easily play audio files in the game world or in player head
+## A library mod for Minecraft that lets you easily play audio files in the game world, "inside" player head or in the menus
 
 # Usage:
 ```java 
