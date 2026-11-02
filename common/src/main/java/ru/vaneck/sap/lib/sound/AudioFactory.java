@@ -38,18 +38,27 @@ public class AudioFactory {
         }
         String cacheKey = source + ":" + type + "&p=" + positional;
         AtomicReference<SoundBuffer> buffer = new AtomicReference<>();
+        AtomicReference<SoundInstance> instance = new AtomicReference<>();
+        AtomicReference<BufferedInputStream> is = new AtomicReference<>();
         try {
             EXECUTOR.execute(() -> {
                 try {
-                    BufferedInputStream is = new BufferedInputStream(openStream(source, type));
-                    AudioData audioData = AudioUtils.decodeStream(is, AudioUtils.parseStreamExtension(is));
+                    is.set(new BufferedInputStream(openStream(source, type)));
+                    AudioData audioData = decodeStream(is.get(), parseStreamExtension(is.get()));
                     future.completeAsync(() -> {
                         buffer.set(AudioCacheManager.getOrCreateBuffer(cacheKey, () -> createBuffer(audioData, positional)));
-                        SoundInstance instance = (SoundInstance) AudioCacheManager.track(new SoundInstance(false, false));
-                        instance.setBuffer(buffer.get().getBufferId());
-                        return instance;
+                        instance.set((SoundInstance) AudioCacheManager.track(new SoundInstance(false, false)));
+                        instance.get().setBuffer(buffer.get().getBufferId());
+                        return instance.get();
                     }, EXECUTOR);
                 } catch (Exception e) {
+                    if (instance.get() != null)
+                        instance.get().close();
+                    if (buffer.get() != null)
+                        buffer.get().close();
+                    if (is.get() != null) {
+                        try { is.get().close(); } catch (IOException ignored) {}
+                    }
                     future.completeExceptionally(e);
                 }
             });
@@ -76,7 +85,7 @@ public class AudioFactory {
             EXECUTOR.execute(() -> {
                 AudioStream audioStream = null;
                 try {
-                    audioStream = AudioUtils.createStream(is, AudioUtils.parseStreamExtension(is), positional);
+                    audioStream = createStream(is, parseStreamExtension(is), positional);
                     AudioStream finalAudioStream = audioStream;
 
                     future.completeAsync(() -> {
@@ -138,7 +147,7 @@ public class AudioFactory {
 
         // to play 3d sound in world
         if (mono) {
-            byteBuffer = AudioUtils.convertBufferToMono(byteBuffer, format);
+            byteBuffer = convertBufferToMono(byteBuffer, format);
             format = new AudioFormat(
                     format.getSampleRate(),
                     format.getSampleSizeInBits(),
