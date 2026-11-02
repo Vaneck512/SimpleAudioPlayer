@@ -13,7 +13,7 @@
     },
     "license": "${license}",
     "icon": "${mod_id}.png",
-    "environment": "*",
+    "environment": "client",
     "entrypoints": {
         "main": [
             "ru.vaneck.sap.SimpleAudioPlayer"
@@ -25,8 +25,7 @@
             "links": {
                 "Author": "https://www.youtube.com/@vaneck512-mods"
             },
-            "update_checker": true,
-            "background": "sap_banner.png"
+            "update_checker": true
         }
     },
     "mixins": [
