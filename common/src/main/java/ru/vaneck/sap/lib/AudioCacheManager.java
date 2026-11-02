@@ -134,11 +134,12 @@ public class AudioCacheManager {
 
             return false;
         });
+    }
 
-//        System.out.println(SOUND_BUFFERS);
-//        System.out.println(SOUND_INSTANCES);
-//        System.out.println(STREAMING_SOUND_INSTANCES);
-
+    public static void stopAndClearAllPositionalInstances() {
+        SOUND_INSTANCES.removeIf(AudioCacheManager::removeIfPositional);
+        STREAMING_SOUND_INSTANCES.removeIf(AudioCacheManager::removeIfPositional);
+        ACTIVE_INSTANCES.removeIf(AudioCacheManager::removeIfPositional);
     }
 
     public static void clearAll() {
@@ -169,6 +170,18 @@ public class AudioCacheManager {
         });
 
         Constants.LOG.info("Audio cleanup completed");
+    }
+
+    private static boolean removeIfPositional(AudioInstance instance) {
+        if (instance.isPositional()) {
+            try {
+                instance.close();
+                return true;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return false;
     }
 
     private static boolean removeIf(AudioInstance instance) {

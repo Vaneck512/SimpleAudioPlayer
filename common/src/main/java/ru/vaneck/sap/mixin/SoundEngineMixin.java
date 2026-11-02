@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import ru.vaneck.sap.lib.AudioCacheManager;
 import ru.vaneck.sap.lib.sound.MinecraftSettingsListeners;
 
 @Mixin(SoundEngine.class)
@@ -18,11 +19,10 @@ public class SoundEngineMixin {
     @Shadow @Final
     private Options options;
 
-    // Both option sliders and temporary category gains reach this method; sliders bypass updateCategoryVolume.
     @Inject(method = "refreshCategoryVolume", at = @At("RETURN"))
     private void onRefresh$SAP(SoundSource source, CallbackInfo ci) {
         if (this.loaded) {
-            //Notify all volume listeners of MinecraftSoundSettingsObserver
+            //Notify all volume listeners
             MinecraftSettingsListeners.getVolumeListeners().forEach(soundSourceFloatBiConsumer -> soundSourceFloatBiConsumer.accept(source, this.options.getFinalSoundSourceVolume(source)));
         }
     }
