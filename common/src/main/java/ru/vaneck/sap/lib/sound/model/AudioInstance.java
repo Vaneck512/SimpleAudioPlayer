@@ -97,7 +97,7 @@ public interface AudioInstance extends Closeable {
      * @param distance the distance threshold value
      * @return the current {@link AudioInstance} instance, for method chaining
      */
-    AudioInstance maxDistance(float distance);
+    AudioInstance setMaxDistance(float distance);
 
     /**
      * Sets the maximum distance for the compression attenuation model.
