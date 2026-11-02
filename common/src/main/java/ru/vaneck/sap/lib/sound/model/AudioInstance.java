@@ -137,4 +137,9 @@ public interface AudioInstance extends Closeable {
      */
     boolean isStarted();
 
+    /**
+     * checks whether an audio instance can be played at the specified coordinates
+     * @return true/false if positional or not
+     */
+    boolean isPositional();
 }

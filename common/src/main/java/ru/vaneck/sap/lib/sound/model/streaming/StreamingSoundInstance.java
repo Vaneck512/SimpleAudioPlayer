@@ -35,10 +35,14 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
     private float volume;
     private long volumeListenerId;
 
-    public StreamingSoundInstance(boolean loop, boolean relative) {
+    private boolean positional;
+
+    public StreamingSoundInstance(boolean loop, boolean relative, boolean positional) {
         this.loop = loop;
         sourceId = alGenSources();
         if (sourceId == 0) throw new IllegalStateException("Could not create OpenAL source");
+
+        this.positional = positional;
 
         int made = 0;
         ShortBuffer scratch = null;
@@ -76,6 +80,11 @@ public final class StreamingSoundInstance implements AutoCloseable, AudioInstanc
             if (soundSource == this.soundChannel || soundSource == SoundSource.MASTER) this.setVolume(this.volume);
         });
         this.setVolume(this.volume);
+    }
+
+    @Override
+    public boolean isPositional() {
+        return positional;
     }
 
     public void setStream(AudioStream stream) {

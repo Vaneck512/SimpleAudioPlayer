@@ -23,12 +23,14 @@ public class SoundInstance implements AudioInstance, Closeable {
     protected SoundSource soundChannel = SoundSource.MASTER;
     private float volume = 1.0F;
     protected long volumeListenerId;
+    private boolean positional;
 
-    public SoundInstance(boolean loop, boolean relative) {
+    public SoundInstance(boolean loop, boolean relative, boolean positional) {
         this.sourceId = alGenSources();
         alSourcei(sourceId, AL_LOOPING, loop ? AL_TRUE : AL_FALSE);
         alSourcei(sourceId, AL_SOURCE_RELATIVE, relative ? AL_TRUE : AL_FALSE);
 
+        this.positional = positional;
 
         AL10.alSourcei(
                 this.sourceId,
@@ -41,6 +43,11 @@ public class SoundInstance implements AudioInstance, Closeable {
             if (soundSource == this.soundChannel || soundSource == SoundSource.MASTER) this.setVolume(this.volume);
         });
         this.setVolume(this.volume);
+    }
+
+    @Override
+    public boolean isPositional() {
+        return positional;
     }
 
     public void cleanup() {
