@@ -47,7 +47,7 @@ public class AudioFactory {
                     AudioData audioData = decodeStream(is.get(), parseStreamExtension(is.get()));
                     future.completeAsync(() -> {
                         buffer.set(AudioCacheManager.getOrCreateBuffer(cacheKey, () -> createBuffer(audioData, positional)));
-                        instance.set((SoundInstance) AudioCacheManager.track(new SoundInstance(false, false)));
+                        instance.set((SoundInstance) AudioCacheManager.track(new SoundInstance(false, false, positional)));
                         instance.get().setBuffer(buffer.get().getBufferId());
                         return instance.get();
                     }, EXECUTOR);
@@ -90,7 +90,7 @@ public class AudioFactory {
 
                     future.completeAsync(() -> {
                         try {
-                            StreamingSoundInstance instance = (StreamingSoundInstance) AudioCacheManager.track(new StreamingSoundInstance(false, false));
+                            StreamingSoundInstance instance = (StreamingSoundInstance) AudioCacheManager.track(new StreamingSoundInstance(false, false, positional));
                             instance.setStream(finalAudioStream);
 
                             return instance;
