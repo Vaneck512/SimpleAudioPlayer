@@ -6,6 +6,6 @@ public class SimpleAudioPlayer implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        CommonClass.init();
+        SimpleAudioPlayerCommon.init();
     }
 }

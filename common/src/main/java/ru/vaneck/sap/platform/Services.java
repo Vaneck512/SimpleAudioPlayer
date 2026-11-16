@@ -1,6 +1,6 @@
 package ru.vaneck.sap.platform;
 
-import ru.vaneck.sap.Constants;
+import ru.vaneck.sap.SimpleAudioPlayerConstants;
 import ru.vaneck.sap.platform.services.IPlatformHelper;
 
 import java.util.ServiceLoader;
@@ -24,7 +24,7 @@ public class Services {
         final T loadedService = ServiceLoader.load(clazz, Services.class.getClassLoader())
                 .findFirst()
                 .orElseThrow(() -> new NullPointerException("Failed to load service for " + clazz.getName()));
-        Constants.LOG.debug("Loaded {} for service {}", loadedService, clazz);
+        SimpleAudioPlayerConstants.LOG.debug("Loaded {} for service {}", loadedService, clazz);
         return loadedService;
     }
 }

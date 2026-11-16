@@ -1,10 +1,9 @@
 package ru.vaneck.sap.lib;
 
 import net.minecraft.client.Minecraft;
-import org.jetbrains.annotations.NotNull;
 import org.lwjgl.openal.AL10;
 import org.lwjgl.openal.AL11;
-import ru.vaneck.sap.Constants;
+import ru.vaneck.sap.SimpleAudioPlayerConstants;
 import ru.vaneck.sap.lib.sound.AudioFactory;
 import ru.vaneck.sap.lib.sound.model.AudioInstance;
 import ru.vaneck.sap.lib.sound.model.SoundBuffer;
@@ -143,7 +142,7 @@ public class AudioCacheManager {
     }
 
     public static void clearAll() {
-        Constants.LOG.info("Starting audio cleanup");
+        SimpleAudioPlayerConstants.LOG.info("Starting audio cleanup");
 
         THREAD.shutdownNow();
         AudioFactory.shutdown();
@@ -169,7 +168,7 @@ public class AudioCacheManager {
             return true;
         });
 
-        Constants.LOG.info("Audio cleanup completed");
+        SimpleAudioPlayerConstants.LOG.info("Audio cleanup completed");
     }
 
     private static boolean removeIfPositional(AudioInstance instance) {
