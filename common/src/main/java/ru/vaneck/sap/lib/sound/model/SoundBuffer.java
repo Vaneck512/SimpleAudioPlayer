@@ -1,7 +1,7 @@
 package ru.vaneck.sap.lib.sound.model;
 
-import org.lwjgl.system.*;
-import ru.vaneck.sap.Constants;
+import ru.vaneck.sap.SimpleAudioPlayerConstants;
+import ru.vaneck.sap.lib.sound.SAPAudioException;
 
 import javax.sound.sampled.AudioFormat;
 import java.nio.*;
@@ -22,7 +22,9 @@ public class SoundBuffer {
             AlErrorHandler.checkOpenAlError();
         } catch (ALException e) {
             alDeleteBuffers(bufferId);
-            Constants.LOG.error("Failed to create SoundBuffer, {}", e.getMessage());
+            this.closed = true;
+            throw new SAPAudioException("Failed to create SoundBuffer, {}" + e.getMessage(), e);
+//            SimpleAudioPlayerConstants.LOG.error("Failed to create SoundBuffer, {}", e.getMessage());
         }
     }
 

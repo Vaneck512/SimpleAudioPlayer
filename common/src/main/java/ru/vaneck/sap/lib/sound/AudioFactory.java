@@ -1,7 +1,7 @@
 package ru.vaneck.sap.lib.sound;
 
 import org.jspecify.annotations.Nullable;
-import ru.vaneck.sap.Constants;
+import ru.vaneck.sap.SimpleAudioPlayerConstants;
 import ru.vaneck.sap.lib.AudioCacheManager;
 import ru.vaneck.sap.lib.sound.model.*;
 import ru.vaneck.sap.lib.sound.model.streaming.AudioStream;
@@ -30,7 +30,7 @@ public class AudioFactory {
         EXECUTOR.shutdownNow();
     }
 
-    public static CompletableFuture<AudioInstance> createSound(String source, AudioType type, boolean positional) {
+    public static CompletableFuture<AudioInstance> createSound(String source, AudioType type, boolean positional, float startThreshold) {
         CompletableFuture<AudioInstance> future = new CompletableFuture<>();
         if (notReady()) {
             future.completeExceptionally(new ALException("Engine not ready"));
@@ -46,11 +46,25 @@ public class AudioFactory {
                     is.set(new BufferedInputStream(openStream(source, type)));
                     AudioData audioData = decodeStream(is.get(), parseStreamExtension(is.get()));
                     future.completeAsync(() -> {
-                        buffer.set(AudioCacheManager.getOrCreateBuffer(cacheKey, () -> createBuffer(audioData, positional)));
+                        buffer.set(AudioCacheManager.getOrCreateBuffer(cacheKey, () -> createBuffer(audioData, positional, startThreshold)));
                         instance.set((SoundInstance) AudioCacheManager.track(new SoundInstance(false, false, positional)));
                         instance.get().setBuffer(buffer.get().getBufferId());
                         return instance.get();
-                    }, EXECUTOR);
+                    }, EXECUTOR).whenComplete((createdInstance, throwable) -> {
+                        if (throwable != null) {
+                            if (instance.get() != null && !instance.get().isClosed()) {
+                                instance.get().close();
+                            }
+
+                            if (buffer.get() != null && !buffer.get().isClosed()) {
+                                buffer.get().close();
+                            }
+
+                            future.completeExceptionally(throwable);
+                        } else {
+                            future.complete(createdInstance);
+                        }
+                    });
                 } catch (Exception e) {
                     if (instance.get() != null)
                         instance.get().close();
@@ -127,10 +141,10 @@ public class AudioFactory {
      * @param streaming read in chunks (if false - load all audio in memory)
      * @param settings set volume, position, max distance, ...
      */
-    public static void playOnce(String source, AudioType type, boolean positoinal, boolean streaming, @Nullable Consumer<AudioInstance> settings) {
-        CompletableFuture<AudioInstance> future = streaming ? createStreamingSound(source, type, positoinal) : createSound(source, type, positoinal);
+    public static void playOnce(String source, AudioType type, boolean positoinal, boolean streaming, float startThreshold, @Nullable Consumer<AudioInstance> settings) {
+        CompletableFuture<AudioInstance> future = streaming ? createStreamingSound(source, type, positoinal) : createSound(source, type, positoinal, startThreshold);
             future.exceptionallyAsync(throwable -> {
-                Constants.LOG.error("Failed to play source, {}", throwable.toString());
+                SimpleAudioPlayerConstants.LOG.error("Failed to play source, {}", throwable.toString());
                 return null;
             });
         future.thenAccept(audioInstance -> {
@@ -141,7 +155,7 @@ public class AudioFactory {
     }
 
 
-    public static SoundBuffer createBuffer(AudioData data, boolean mono) {
+    public static SoundBuffer createBuffer(AudioData data, boolean mono, float startThreshold) {
         ByteBuffer byteBuffer = data.data();
         AudioFormat format = data.format();
 
@@ -156,7 +170,7 @@ public class AudioFactory {
                     format.isBigEndian()
             );
         }
-
+        if (startThreshold > -1) trimStartSilence(byteBuffer, format, startThreshold);
         return new SoundBuffer(byteBuffer, format);
     }
 
@@ -164,7 +178,7 @@ public class AudioFactory {
     private static boolean notReady() {
         boolean ready = OpenAlUtils.isOpenAlReady();
         if (!ready) {
-            Constants.LOG.warn("OpenAL is not ready, operation is stopped");
+            SimpleAudioPlayerConstants.LOG.warn("OpenAL is not ready, operation is stopped");
         }
         return !ready;
     }

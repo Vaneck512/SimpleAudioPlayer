@@ -4,7 +4,7 @@ import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.jspecify.annotations.Nullable;
-import ru.vaneck.sap.Constants;
+import ru.vaneck.sap.SimpleAudioPlayerConstants;
 import ru.vaneck.sap.lib.sound.AudioFactory;
 import ru.vaneck.sap.lib.sound.AudioType;
 import ru.vaneck.sap.lib.sound.model.AudioInstance;
@@ -143,7 +143,7 @@ public class SAP {
             Consumer<AudioInstance> finalSettings = settings;
             if (channel != null && settings != null)
                 finalSettings = settings.andThen(s -> s.setSoundChannel(channel));
-            AudioFactory.playOnce(uri, uri_type, positional, stream, finalSettings);
+            AudioFactory.playOnce(uri, uri_type, positional, stream, -1, finalSettings);
         });
     }
 
@@ -156,8 +156,8 @@ public class SAP {
      * @param positional indicates whether the sound is positional (3D sound, works in world)
      * @return {@link   CompletableFuture}
      */
-    public static CompletableFuture<SoundInstance> create(String uri, AudioType type, boolean positional) {
-        return AudioFactory.createSound(uri, type, positional).thenApply(SoundInstance.class::cast);
+    public static CompletableFuture<SoundInstance> create(String uri, AudioType type, boolean positional, float startThreshold) {
+        return AudioFactory.createSound(uri, type, positional, startThreshold).thenApply(SoundInstance.class::cast);
     }
 
     /**
@@ -169,8 +169,8 @@ public class SAP {
      * @param positional indicates whether the sound is positional (3D sound, works in world)
      * @return {@link   CompletableFuture}
      */
-    public static CompletableFuture<StreamingSoundInstance> createStreaming(String uri, AudioType type, boolean positional) {
-        return AudioFactory.createSound(uri, type, positional).thenApply(StreamingSoundInstance.class::cast);
+    public static CompletableFuture<StreamingSoundInstance> createStreaming(String uri, AudioType type, boolean positional, float startThreshold) {
+        return AudioFactory.createSound(uri, type, positional, startThreshold).thenApply(StreamingSoundInstance.class::cast);
     }
 
     /**
@@ -188,7 +188,7 @@ public class SAP {
                 }
             } catch (Throwable exception) {
                 futureRef.get().cancel(false);
-                Constants.LOG.error("Exception while playing sound: {}", exception.toString());
+                SimpleAudioPlayerConstants.LOG.error("Exception while playing sound: {}", exception.toString());
             }
         }, 0, 512, TimeUnit.MILLISECONDS);
 

@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.sounds.JOrbisAudioStream;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
+import org.lwjgl.openal.AL10;
 import org.overviewproject.mime_types.MimeTypeDetector;
 import ru.vaneck.sap.lib.sound.model.AudioData;
 import ru.vaneck.sap.lib.sound.model.streaming.AudioStream;
@@ -182,5 +183,54 @@ public class AudioUtils {
         String extension = mimeType.contains("/") ? mimeType.split("/")[1] : "";
         extension = extension.replace("mpeg", "mp3");
         return SourceExtension.parse(extension);
+    }
+
+    public static void trimStartSilence(ByteBuffer pcmBuffer, AudioFormat audioFormat, float threshold) {
+        int channels = audioFormat.getChannels();
+        boolean is16Bit = audioFormat.getSampleSizeInBits() == 16;
+
+        int bytesPerSample = is16Bit ? 2 : 1;
+        int frameSize = bytesPerSample * channels;
+
+        // Convert normalized threshold (0.0f - 1.0f) to format-specific integer scale
+        int scaledThreshold = is16Bit
+                ? Math.round(threshold * 32767f)
+                : Math.round(threshold * 127f);
+
+        if (is16Bit) {
+            pcmBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        }
+
+        int startPos = pcmBuffer.position();
+        int limit = pcmBuffer.limit();
+        int firstAudiblePos = startPos;
+
+        for (int pos = startPos; pos + frameSize <= limit; pos += frameSize) {
+            boolean frameIsAudible = false;
+
+            for (int ch = 0; ch < channels; ch++) {
+                int sampleOffset = pos + (ch * bytesPerSample);
+                int amplitude;
+
+                if (is16Bit) {
+                    amplitude = Math.abs(pcmBuffer.getShort(sampleOffset));
+                } else {
+                    int unsignedSample = pcmBuffer.get(sampleOffset) & 0xFF;
+                    amplitude = Math.abs(unsignedSample - 128);
+                }
+
+                if (amplitude > scaledThreshold) {
+                    frameIsAudible = true;
+                    break;
+                }
+            }
+
+            if (frameIsAudible) {
+                firstAudiblePos = pos;
+                break;
+            }
+        }
+
+        pcmBuffer.position(firstAudiblePos);
     }
 }
