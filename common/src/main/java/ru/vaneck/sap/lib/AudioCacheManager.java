@@ -75,8 +75,13 @@ public class AudioCacheManager {
     }
 
     public static void cleanUp() {
+//        System.out.println(SOUND_INSTANCES);
+//        System.out.println(ACTIVE_INSTANCES);
+//        System.out.println(STREAMING_SOUND_INSTANCES);
+//        System.out.println(SOUND_BUFFERS);
         SOUND_INSTANCES.removeIf(soundInstance -> {
             if (!soundInstance.isStarted()) return false;
+            if (soundInstance.isClosed()) return true;
             if (!soundInstance.isPlaying() && !soundInstance.isPaused()) {
                 if (!soundInstance.isClosed()) {
                     soundInstance.close();
@@ -89,7 +94,7 @@ public class AudioCacheManager {
         ACTIVE_INSTANCES.removeIf(soundInstance -> {
             if (!soundInstance.isStarted()) return false;
             if (!soundInstance.isPlaying() && !soundInstance.isPaused()) {
-                return !soundInstance.isClosed();
+                return soundInstance.isClosed();
             }
             return false;
         });
