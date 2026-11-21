@@ -19,6 +19,10 @@ neoForge {
     if (at.exists()) {
         accessTransformers.from(at.absolutePath)
     }
+    parchment {
+        minecraftVersion = parchment_minecraft
+        mappingsVersion = parchment_version
+    }
     runs {
         configureEach {
             systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
@@ -37,8 +41,8 @@ neoForge {
         }
         server {
             server()
-            this.file('runs/server').createParentDirectories()
-            gameDirectory = this.mkdir(this.file('runs/server'))
+//            this.file('runs/server').createParentDirectories()
+//            gameDirectory = this.mkdir(this.file('runs/server'))
         }
     }
     mods {
