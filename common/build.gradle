@@ -66,7 +66,7 @@ sourceSets.configureEach {
 }
 
 publishMods {
-    changelog = "First version"
+    changelog = "Memory leak fix"
     type = STABLE
 
     // CurseForge options used by both Fabric and NeoForge
