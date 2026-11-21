@@ -17,6 +17,16 @@ jar {
     }
 }
 
+jarJar.enable()
+//jarJar.register()
+tasks.named('jar') {
+    archiveClassifier = ''
+    finalizedBy('jarJar')
+}
+tasks.named('jarJar') {
+    archiveClassifier = ''
+}
+
 minecraft {
     mappings channel: 'official', version: minecraft_version
 
@@ -75,9 +85,34 @@ sourceSets.main.resources.srcDir 'src/generated/resources'
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT:processor")
-    jarJar implementation("javazoom:jlayer:1.0.1")
-    jarJar implementation("org.overviewproject:mime-types:2.0.0")
+    jarJar(implementation('javazoom:jlayer:1.0.1')) {
+        jarJar.ranged(it, '[1.0.1,2.0)')
+    }
+    jarJar(implementation('org.overviewproject:mime-types:2.0.0')) {
+        jarJar.ranged(it, '[2.0.0,3.0)')
+    }
 }
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+//tasks.named('jar') {
+//    enabled = false
+//}
+
+base {
+    archivesName.set("${mod_id}-forge-${minecraft_version}")
+}
+
+//tasks.named('jarJar') {
+//    archiveClassifier.set('')
+//}
+
+//tasks.named('assemble') {
+//    dependsOn tasks.named('jarJar')
+//}
 
 publishing {
     publications {
@@ -103,11 +138,12 @@ def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', Strin
     }
 }
 sourceSets.configureEach {
-    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant->
-        configurations.named("$variant") {
-            attributes {
-                attribute(loaderAttribute, 'forge')
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName/*, it.getTaskName(null, 'jarJar')*/].each { variant->
+        if (configurations.names.contains(variant))
+            configurations.named("$variant") {
+                attributes {
+                    attribute(loaderAttribute, 'forge')
+                }
             }
-        }
     }
 }

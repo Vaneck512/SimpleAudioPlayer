@@ -22,8 +22,8 @@ dependencies {
         officialMojangMappings()
         parchment("org.parchmentmc.data:parchment-${parchment_minecraft}:${parchment_version}@zip")
     }
-    implementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
-    implementation("net.fabricmc.fabric-api:fabric-api:${fabric_version}")
+    modImplementation ("net.fabricmc:fabric-loader:${fabric_loader_version}")
+    modImplementation ("net.fabricmc.fabric-api:fabric-api:${fabric_version}")
     include implementation("javazoom:jlayer:1.0.1")
     include implementation("org.overviewproject:mime-types:2.0.0")
 }
@@ -32,6 +32,9 @@ loom {
     def aw = project(':common').file("src/main/resources/${mod_id}.accesswidener")
     if (aw.exists()) {
         accessWidenerPath.set(aw)
+    }
+    mixin {
+        defaultRefmapName.set("${mod_id}.refmap.json")
     }
     runs {
         client {
@@ -70,6 +73,13 @@ sourceSets.configureEach {
             attributes {
                 attribute(loaderAttribute, 'fabric')
             }
+        }
+    }
+}
+loom.remapConfigurations.configureEach {
+    configurations.named(it.name) {
+        attributes {
+            attribute(loaderAttribute, 'fabric')
         }
     }
 }
