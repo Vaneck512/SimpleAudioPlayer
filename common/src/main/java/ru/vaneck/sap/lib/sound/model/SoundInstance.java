@@ -56,7 +56,7 @@ public class SoundInstance implements AudioInstance, Closeable {
     }
 
     public boolean isPlaying() {
-        return alGetSourcei(sourceId, AL_SOURCE_STATE) == AL_PLAYING;
+        return !this.isClosed() && alGetSourcei(sourceId, AL_SOURCE_STATE) == AL_PLAYING;
     }
 
     public SoundInstance pause() {
@@ -157,7 +157,7 @@ public class SoundInstance implements AudioInstance, Closeable {
     }
 
     public boolean isPaused() {
-        return alGetSourcei(sourceId, AL_SOURCE_STATE) == AL_PAUSED;
+        return !this.isClosed() && alGetSourcei(sourceId, AL_SOURCE_STATE) == AL_PAUSED;
     }
 
     @Override
