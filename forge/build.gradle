@@ -5,7 +5,7 @@ plugins {
     id 'idea'
 }
 base {
-    archivesName = "${mod_name}-forge-${minecraft_version}"
+    archivesName.set("${mod_id}-forge-${minecraft_version}")
 }
 mixin {
     add sourceSets.main, "${mod_id}.refmap.json"
@@ -103,9 +103,9 @@ java {
 //    enabled = false
 //}
 
-base {
-    archivesName.set("${mod_id}-forge-${minecraft_version}")
-}
+//base {
+//    archivesName.set("${mod_id}-forge-${minecraft_version}")
+//}
 
 //tasks.named('jarJar') {
 //    archiveClassifier.set('')
