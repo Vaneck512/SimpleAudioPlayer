@@ -2,8 +2,8 @@ package ru.vaneck.sap.lib;
 
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
-import org.jspecify.annotations.Nullable;
 import ru.vaneck.sap.SimpleAudioPlayerConstants;
 import ru.vaneck.sap.lib.sound.AudioFactory;
 import ru.vaneck.sap.lib.sound.AudioType;
@@ -183,7 +183,7 @@ public class SAP {
         ScheduledFuture<?> future = SCHEDULED_EXECUTOR.scheduleAtFixedRate(() -> {
             try {
                 if (OpenAlUtils.isOpenAlReady() && null != futureRef.get()) {
-                    futureRef.get().cancel(true); // to stop next run
+                    futureRef.get().cancel(false); // to stop next run
                     runnable.run();
                 }
             } catch (Throwable exception) {

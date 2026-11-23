@@ -17,8 +17,8 @@ public class MixinMinecraft {
     }
 
     // Clear positional sound instances when leaving the world
-    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screens/Screen;ZZ)V", at = @At("HEAD"))
-    private void onStop$SAP(Screen screen, boolean keepResourcePacks, boolean stopSound, CallbackInfo ci) {
+    @Inject(method = "disconnect", at = @At("HEAD"))
+    private void onStop$SAP(Screen nextScreen, boolean keepResourcePacks, CallbackInfo ci) {
         if (((Minecraft)(Object)this).level != null)
             AudioCacheManager.stopAndClearAllPositionalInstances();
     }

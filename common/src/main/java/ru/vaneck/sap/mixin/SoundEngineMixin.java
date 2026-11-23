@@ -19,7 +19,7 @@ public class SoundEngineMixin {
     @Shadow @Final
     private Options options;
 
-    @Inject(method = "refreshCategoryVolume", at = @At("RETURN"))
+    @Inject(method = "updateCategoryVolume", at = @At("RETURN"))
     private void onRefresh$SAP(SoundSource source, CallbackInfo ci) {
         if (this.loaded) {
             //Notify all volume listeners

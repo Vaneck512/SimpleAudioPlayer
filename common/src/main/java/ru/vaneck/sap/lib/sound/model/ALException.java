@@ -1,6 +1,6 @@
 package ru.vaneck.sap.lib.sound.model;
 
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class ALException extends Exception {
 

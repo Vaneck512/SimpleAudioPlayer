@@ -3,7 +3,7 @@ package ru.vaneck.sap.lib.sound;
 import javazoom.jl.decoder.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.sounds.JOrbisAudioStream;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import org.lwjgl.openal.AL10;
 import org.overviewproject.mime_types.MimeTypeDetector;
@@ -70,7 +70,7 @@ public class AudioUtils {
             }
             case FILE -> new BufferedInputStream(new FileInputStream(source));
             case LOCATION -> {
-                Identifier id = Identifier.tryParse(source);
+                ResourceLocation id = ResourceLocation.tryParse(source);
                 if (id == null) throw new SAPAudioException("Invalid resource identifier: " + source);
                 Optional<Resource> resource = Minecraft.getInstance().getResourceManager().getResource(id);
                 if (resource.isEmpty()) throw new SAPAudioException("Audio resource not found in Minecraft resources: " + source);
